@@ -5,15 +5,33 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 @SuppressWarnings("unchecked")
 @Repository
 public  abstract class GenericDaoImpl<E, K extends Serializable> implements GenericDao<E, K> {
 	
+	/************inicio jdbctemplate******************/
+		protected JdbcTemplate jdbcTemplate;
+		
+		@Autowired
+		public final void setDataSource(DataSource dataSource) {
+		  this.jdbcTemplate = new JdbcTemplate(dataSource);
+	  }
+	/*************fin jdbctemplate*****************/
+		
+	/************INICIO llamar procedimientos******************/
+	protected SimpleJdbcCall simpleJdbcCall;
+	@Autowired
+	protected DataSource dataSource;
+	/************fin llamar procedimientos******************/
 	@Autowired
 	private SessionFactory sessionFactory;
 
