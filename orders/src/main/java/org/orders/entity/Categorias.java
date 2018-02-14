@@ -15,9 +15,10 @@ import javax.persistence.Table;
 public class Categorias {
 	@Id
 	@Column(name="Idcategoria")
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categorias_seq")
+	@GeneratedValue(generator = "categorias_seq")
 	@SequenceGenerator(name="categorias_seq", sequenceName="categorias_seq",allocationSize=1)
 	private int Idcategoria;
+	//@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categorias_seq")
 	
 	@Column(name="Nombrecategoria")
 	private String Nombrecategoria;

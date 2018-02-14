@@ -28,11 +28,15 @@ public class OrderController {
     	System.out.println("Cantidad hibernate :"+lista.size());
     	
     	Categorias cat=new Categorias();
+    	System.out.println("INSERTADO antes:"+cat.getIdcategoria());
     	cat.setNombrecategoria("POLLOS2");
     	cat.setDescripcion("POLLOS SAN FERNANDO2");
-    	categoriasService.saveOrUpdate(cat);
+    	categoriasService.add(cat);
     	
-    	System.out.println("INSERTADO :"+cat.getIdcategoria());
+    	System.out.println("INSERTADO despues:"+cat.getIdcategoria());
+    	
+    	cat.setDescripcion("POLLOS SAN FERNANDO2 actualizado");
+    	categoriasService.update(cat);
     	
     	ModelAndView model = new ModelAndView();
     	
