@@ -25,14 +25,24 @@ public class OrderController {
 	public ModelAndView index() {
 	    //List<Categorias> lista=categoriasService.listaPersonalizada();
 		List<Categorias> lista=categoriasService.getAll();
-    	System.out.println("Cantidad2 :"+lista.size());
+    	System.out.println("Cantidad hibernate :"+lista.size());
+    	
+    	Categorias cat=new Categorias();
+    	cat.setNombrecategoria("POLLOS2");
+    	cat.setDescripcion("POLLOS SAN FERNANDO2");
+    	categoriasService.saveOrUpdate(cat);
+    	
+    	System.out.println("INSERTADO :"+cat.getIdcategoria());
     	
     	ModelAndView model = new ModelAndView();
     	
-    	//List<Productos> lista2=productosService.listarJdbc();
-    	List<Productos> lista2=productosService.listarProcedure();
-		model.addObject("listaProducto", lista2);
-		System.out.println("Cantidad productos :"+lista2.size());
+    	List<Productos> lista2=productosService.listarJdbc();
+    	System.out.println("Cantidad productos jdbc :"+lista2.size());
+    	
+    	List<Productos> lista3=productosService.listarProcedure();
+		model.addObject("listaProducto", lista3);
+		
+		System.out.println("Cantidad productos procedure:"+lista3.size());
 		model.setViewName("product/list");
 		return model;
 	}

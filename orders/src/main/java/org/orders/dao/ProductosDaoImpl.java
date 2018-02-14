@@ -1,5 +1,6 @@
 package org.orders.dao;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +25,13 @@ public class ProductosDaoImpl extends GenericDaoImpl<Productos, Integer> impleme
 	public List<Productos> listarJdbc() {
 		List<Productos> lista=null;
 		
-		MapSqlParameterSource parametros = new MapSqlParameterSource();
+		MapSqlParameterSource parametros = new MapSqlParameterSource()
+				//.addValue("P_ANIO", m.get("P_ANIO"))
+				.addValue("P_MAY_ID_PRODUCTO", 72);
 		
 		String sql = "select IdProducto,NombreProducto,IdProveedor,IdCategoria,PrecioUnidad,stock,Suspendido from productos where IdProducto>:P_MAY_ID_PRODUCTO";
-		parametros.addValue("P_MAY_ID_PRODUCTO", 70);
-  		lista= jdbcTemplate.query(sql, new ProductosMapper(),parametros);
+		//parametros.addValue("P_MAY_ID_PRODUCTO", 70);
+  		lista= this.namedParameterJdbcTemplate.query(sql,parametros, new ProductosMapper());
 		return lista;
 	}
 	

@@ -11,6 +11,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
@@ -21,17 +22,27 @@ public  abstract class GenericDaoImpl<E, K extends Serializable> implements Gene
 	/************inicio jdbctemplate******************/
 		protected JdbcTemplate jdbcTemplate;
 		
+		//parametros
+		protected NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+		
 		@Autowired
 		public final void setDataSource(DataSource dataSource) {
 		  this.jdbcTemplate = new JdbcTemplate(dataSource);
+		  this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 	  }
 	/*************fin jdbctemplate*****************/
+		
+		
+		
 		
 	/************INICIO llamar procedimientos******************/
 	protected SimpleJdbcCall simpleJdbcCall;
 	@Autowired
 	protected DataSource dataSource;
 	/************fin llamar procedimientos******************/
+	
+	
+	
 	@Autowired
 	private SessionFactory sessionFactory;
 
