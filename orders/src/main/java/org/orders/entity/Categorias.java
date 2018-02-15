@@ -8,8 +8,6 @@ import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-
-
 @Table(name="CATEGORIAS")  
 @Entity
 public class Categorias {
@@ -23,7 +21,7 @@ public class Categorias {
 	@Column(name="Nombrecategoria")
 	private String Nombrecategoria;
 	
-	@Column(name="Descripción")
+	@Column(name="Descripcion")
 	private String Descripcion;
 	
 	public int getIdcategoria() {

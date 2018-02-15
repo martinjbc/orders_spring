@@ -7,7 +7,7 @@ import org.orders.base.GenericDaoImpl;
 import org.orders.entity.Categorias;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("CategoriasDao")
 public class CategoriasDaoImpl extends GenericDaoImpl<Categorias, Integer> 
 implements CategoriasDao{
 	

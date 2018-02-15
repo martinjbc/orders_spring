@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 import org.springframework.stereotype.Repository;
 
 import oracle.jdbc.OracleTypes;
-@Repository
+@Repository("ProductosDao")
 public class ProductosDaoImpl extends GenericDaoImpl<Productos, Integer> implements ProductosDao {
 
 	private String PACKAGE  = "PRODUCTOS_API";

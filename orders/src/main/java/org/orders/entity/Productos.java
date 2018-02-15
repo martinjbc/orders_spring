@@ -5,27 +5,36 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 @Table(name="PRODUCTOS")  
 @Entity
 public class Productos {
 	@Id
-	@GeneratedValue(strategy= GenerationType.AUTO)
 	@Column(name="idProducto")
+	@GeneratedValue(generator = "producto_seq")
+	@SequenceGenerator(name="producto_seq", sequenceName="producto_seq",allocationSize=1)
 	 private int idProducto;
+	
 	@Column(name="nombreproducto")
      private String nombreproducto;
+	
 	@Column(name="idProveedor")
      private int idProveedor;
+	
 	@Column(name="idCategoria")
      private int idCategoria;
+	
 	@Column(name="preciounidad")
      private double precio;
+	
 	@Column(name="stock")
      private int stock;
+	
 	@Column(name="suspendido")
-     private int suspendido;
+    private int suspendido;
+	
 	public int getIdProducto() {
 		return idProducto;
 	}

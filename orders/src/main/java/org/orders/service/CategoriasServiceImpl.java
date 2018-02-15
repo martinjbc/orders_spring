@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
+@Service("CategoriasService")
 public class CategoriasServiceImpl extends GenericServiceImpl<Categorias, Integer, CategoriasDao>
 implements CategoriasService {
 	
