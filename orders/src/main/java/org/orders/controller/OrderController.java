@@ -63,7 +63,7 @@ public class OrderController {
 	@RequestMapping(value="/listarComboCategorias",method={  RequestMethod.GET })
 	public @ResponseBody Map<String,Object> listarComboCategorias(HttpServletRequest req,HttpSession session){
 		Map<String,Object> salida=new HashMap<String,Object>();
-		
+
 		try{
 			List<Categorias> lista=categoriasService.getAll();
 			int cant=lista.size();

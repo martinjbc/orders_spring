@@ -42,10 +42,14 @@
 	    <artifactId>spring-orm</artifactId>
 	    <version>4.3.7.RELEASE</version>
 	</dependency>
-	
-	
 
-
+	<!-- convert map to json responsebody -->
+	<dependency>
+		<groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-databind</artifactId>
+		<version>2.5.0</version>
+	</dependency>
+		<!---->
 	<dependency>
 	    <groupId>mysql</groupId>
 	    <artifactId>mysql-connector-java</artifactId>
