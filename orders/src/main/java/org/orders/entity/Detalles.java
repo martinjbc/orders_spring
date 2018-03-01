@@ -2,12 +2,18 @@ package org.orders.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-/*
+
 @Table(name="DETALLES")  
 @Entity
 public class Detalles {
+	@Id
 	@Column(name="Idpedido")
+	@GeneratedValue(generator = "detalles_seq")
+	@SequenceGenerator(name="detalles_seq", sequenceName="detalles_seq",allocationSize=1)
 	private int Idpedido;
 
 	@Column(name="Idproducto")
@@ -64,4 +70,3 @@ public class Detalles {
 	
 
 }
-*/	
