@@ -1,0 +1,256 @@
+using Neptuno.Libreria.Negocio;
+using Neptuno.Venta.Bussines;
+using Neptuno.Venta.Entity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Unity.Attributes;
+
+namespace Neptuno.Venta.AppWeb.Controllers
+{
+    public class RegistroVentaController : Controller
+    {
+        [Dependency]
+        protected IVentaWebBll _iVentaWebBll { get; set; }
+
+        
+        private decimal total = 0;
+        private int stk;
+        private List<DetallePedidoDto> lista;
+
+        public RegistroVentaController() {
+            
+           
+        }
+        // GET: RegistroVenta
+        public ActionResult Index()
+        {
+            if (Session["ListaDetallePedidoDto"] == null)
+            {
+                List<DetallePedidoDto> lista = new List<DetallePedidoDto>();
+                Session["ListaDetallePedidoDto"] = lista;
+            }
+            ViewData["ListaClientes"] = new SelectList(_iVentaWebBll.ClienteListarProcedure(), "IdCliente", "NombreCompañia"); 
+            ViewData["ListaEmpleados"] = new SelectList(_iVentaWebBll.ListarTablaEmpleadosLinqLambda(), "IdEmpleado", "Empleado");
+            
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AgregarFila(DetallePedidoDto dto)
+        {
+            lista = (List<DetallePedidoDto>)Session["ListaDetallePedidoDto"];
+
+            Dictionary<string, object> datos = new Dictionary<string, object>();
+            int success = 0;
+            String mensaje = "";
+            decimal total = 0;
+            int cantidad= 0;
+            if (ModelState.IsValid)
+            {
+
+                var itemToRemove=lista.SingleOrDefault(r => r.Codigo == dto.Codigo);
+
+                success = 1;
+                dto.SubTotal = dto.Precio * dto.Cantidad;
+
+                if (itemToRemove != null)
+                {
+                    lista.Where(p => p.Codigo == dto.Codigo).ToList().ForEach(p => {
+                                            p.Cantidad+=dto.Cantidad;
+                                            p.SubTotal += dto.SubTotal;
+                                            }
+                                            
+                                        );
+
+                    Session["ListaDetallePedidoDto"] = lista;
+                }
+                else {
+                    lista.Add(dto);
+                }
+
+                total = lista.Sum(p => p.SubTotal);
+                cantidad = lista.Count();
+
+                Session["ListaDetallePedidoDto"] = lista;
+                mensaje = "Agregado Correctamente";
+            }
+            else
+            {
+                var errors = new List<string>();
+                mensaje = "Se Produjeron los siguientes Errores:";
+                foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        errors.Add(error.ErrorMessage);
+                        mensaje += " <br/> " + error.ErrorMessage;
+                    }
+                }
+                success = 0;
+
+            }
+            datos.Add("success", success);
+            datos.Add("mensaje", mensaje);
+            datos.Add("total", total);
+            datos.Add("cantidad", cantidad);
+            return Json(datos, JsonRequestBehavior.DenyGet);
+        }
+        [HttpPost]
+        public ActionResult ListarTablaProductosLinq()
+        {
+            return Json(_iVentaWebBll.ListarTablaProductosLinq(), JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult LimpiarDetalleTablaProductos() {
+            Session.Remove("ListaDetallePedidoDto");
+            Session.Abandon();//Eliminar todas las sesiones
+            return Json(new { success = 1 }, JsonRequestBehavior.AllowGet);
+        }
+        public ActionResult ListarDetallePedido() {
+            lista = (List<DetallePedidoDto>)Session["ListaDetallePedidoDto"];
+            return Json(lista, JsonRequestBehavior.AllowGet);
+        }
+        [HttpPost]
+        public ActionResult EliminarDetalle(int Codigo) {
+            lista = (List<DetallePedidoDto>)Session["ListaDetallePedidoDto"];
+            var itemToRemove = lista.SingleOrDefault(r => r.Codigo== Codigo);
+            if (itemToRemove != null) {
+                lista.Remove(itemToRemove);
+                Session["ListaDetallePedidoDto"] = lista;
+            }
+            
+            return Json(lista, JsonRequestBehavior.AllowGet);
+        }
+        public ActionResult Grabar() {
+            Dictionary<string, object> datos = new Dictionary<string, object>();
+            int success = 0;
+            string mensaje= "";
+            int idpedido = 0;
+
+            List<DetallePedidoDto> lista = (List<DetallePedidoDto>)Session["ListaDetallePedidoDto"];
+            if (lista != null)
+            {
+                if (lista.Count() > 0)
+                {
+                    Ventas o = new Ventas();
+                    List<Detalle> detalle = new List<Detalle>();
+
+                    foreach (DetallePedidoDto item in lista)
+                    {
+                        Detalle x = new Detalle();
+                        x.IdProducto = item.Codigo;
+                        x.Precio = item.Precio;
+                        x.Cantidad = item.Cantidad;
+                        detalle.Add(x);
+                    }
+                    try
+                    {
+
+                        o.IdCliente = Request["IdCliente"].ToString();
+                        o.IdEmpleado = Convert.ToInt32(Request["IdEmpleado"]);
+                        o.FechaVenta = DateTime.Parse(Request["FechaVenta"].ToString());
+                        o.Monto = Convert.ToDecimal(Request["Monto"]);
+                        o.Item = detalle;
+                        idpedido = _iVentaWebBll.RegistraVenta(o);
+                        mensaje = "Gracias por su compra id comprar : " + idpedido.ToString();
+                        LimpiarDetalleTablaProductos();
+                        success = 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        mensaje = ex.Message;
+                    }
+                }
+                else
+                {
+                    mensaje = "Debe agregar al menos un producto";
+                }
+            }
+            else {
+                mensaje = "No cuenta con items para comprar";
+            }
+            
+
+            datos.Add("success", success);
+            datos.Add("mensaje", mensaje);
+            datos.Add("idpedido", idpedido);
+            
+            return Json(datos, JsonRequestBehavior.DenyGet);
+        }
+        // GET: RegistroVenta/Details/5
+        public ActionResult Details(int id)
+        {
+            return View();
+        }
+
+        // GET: RegistroVenta/Create
+        public ActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: RegistroVenta/Create
+        [HttpPost]
+        public ActionResult Create(FormCollection collection)
+        {
+            try
+            {
+                // TODO: Add insert logic here
+
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        // GET: RegistroVenta/Edit/5
+        public ActionResult Edit(int id)
+        {
+            return View();
+        }
+
+        // POST: RegistroVenta/Edit/5
+        [HttpPost]
+        public ActionResult Edit(int id, FormCollection collection)
+        {
+            try
+            {
+                // TODO: Add update logic here
+
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        // GET: RegistroVenta/Delete/5
+        public ActionResult Delete(int id)
+        {
+            return View();
+        }
+
+        // POST: RegistroVenta/Delete/5
+        [HttpPost]
+        public ActionResult Delete(int id, FormCollection collection)
+        {
+            try
+            {
+                // TODO: Add delete logic here
+
+                return RedirectToAction("Index");
+            }
+            catch
+            {
+                return View();
+            }
+        }
+    }
+}

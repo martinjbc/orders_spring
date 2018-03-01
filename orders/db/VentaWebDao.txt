@@ -1,0 +1,130 @@
+using Neptuno.Venta.Entity;
+using Neptuno.Venta.Entity.Entidad;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Neptuno.Venta.DataAccess
+{
+    public class VentaWebDao: IVentaWebDao
+    {
+        NeptunoEntities1 dbcontext;
+
+        public VentaWebDao()
+        {
+            dbcontext = new NeptunoEntities1();
+        }
+        public List<ClienteDto> ListarTablaClienteProcedure(SqlConnection con)
+        {
+            List<ClienteDto> lista = new List<ClienteDto>();
+            using (var cmd = new SqlCommand("usp_cliente_Listar", con))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                var dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    ClienteDto dto = new ClienteDto()
+                    {
+                        IdCliente = dr["IdCliente"].ToString(),
+                        NombreCompañia = dr["NombreCompañía"].ToString()
+                    };
+                    lista.Add(dto);
+                }
+
+
+
+            }
+
+            return lista;
+        }
+        public List<EmpleadosDto> ListarTablaEmpleadosLinqLambda()
+        {
+
+
+            var l = dbcontext.Empleados.Where(e => e.IdEmpleado > 0).Select(e =>
+                    new EmpleadosDto
+                    {
+                        IdEmpleado = e.IdEmpleado,
+                        Empleado = e.Apellidos + " " + e.Nombre
+                    });
+            return l.ToList();
+        }
+        public List<ProductoDto> ListarTablaProductosLinq()
+        {
+            return (from p in dbcontext.Productos
+                    where p.IdProducto > 0
+                    orderby p.NombreProducto
+                    select new ProductoDto
+                    {
+                        IdProducto = p.IdProducto,
+                        NombreProducto = p.NombreProducto,
+                        IdProveedor = p.IdProveedor,
+                        IdCategoria = p.IdCategoría,
+                        PrecioUnidad = p.PrecioUnidad,
+                        Stock = p.Stock
+                    }).ToList();
+        }//end
+        public int Procesar(SqlConnection con, Ventas reg)
+        {
+            int IdVenta = -1;
+            SqlTransaction trx = null;
+            try
+            {
+                trx = con.BeginTransaction();
+                SqlCommand cmd = new SqlCommand("usp_Registra_Venta", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@IdCliente", reg.IdCliente);
+                cmd.Parameters.AddWithValue("@IdEmpleado", reg.IdEmpleado);
+                cmd.Parameters.AddWithValue("@Fecha", reg.FechaVenta);
+                cmd.Parameters.AddWithValue("@Monto", reg.Monto);
+                SqlParameter par = cmd.Parameters.Add("@IdVenta", SqlDbType.Int);
+                par.Direction = ParameterDirection.Output;
+                cmd.Transaction = trx;
+
+                int n = cmd.ExecuteNonQuery();
+
+                if (n > 0) IdVenta = (int)par.Value;
+                SqlCommand cmdd = new SqlCommand("usp_Registra_Detalle", con);
+                cmdd.CommandType = CommandType.StoredProcedure;
+                cmdd.Transaction = trx;
+                SqlCommand cmdp = new SqlCommand("usp_Actualiza_Stock", con);
+                cmdp.CommandType = CommandType.StoredProcedure;
+                cmdp.Transaction = trx;
+                foreach (Detalle item in reg.Item)
+                {
+                    cmdd.Parameters.Clear();
+                    cmdd.Parameters.AddWithValue("@Idventa", IdVenta);
+                    cmdd.Parameters.AddWithValue("@IdProducto", item.IdProducto);
+                    cmdd.Parameters.AddWithValue("@Precio", item.Precio);
+                    cmdd.Parameters.AddWithValue("@Cantidad", item.Cantidad);
+                    cmdd.ExecuteNonQuery();
+                    cmdp.Parameters.Clear();
+                    cmdp.Parameters.AddWithValue("@IdProducto", item.IdProducto);
+                    cmdp.Parameters.AddWithValue("@Cantidad", item.Cantidad);
+                    cmdp.ExecuteNonQuery();
+                }
+                trx.Commit();// 
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    trx.Rollback(); //
+                }
+                catch (Exception ex1)
+                {
+                    throw ex1;
+                }
+                throw ex;
+            }
+            return IdVenta;
+
+        }
+    }
+}
